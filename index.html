@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="id">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Literasi Informasi — Fakta atau Hoaks?</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&amp;family=Work+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+  /* ===== Pengaturan CSS dasar & tema warna (lebih hidup) ===== */
+  :root{
+    --biru:#2563eb; --biru-tua:#1e3a8a; --biru-muda:#e0edff;
+    --hijau:#059669; --hijau-muda:#d1fae5;
+    --merah:#e11d48; --oranye:#f97316; --oranye-muda:#ffedd5;
+    --ungu:#7c3aed; --ungu-muda:#ede9fe;
+    --pink:#ec4899; --kuning:#facc15;
+    --abu:#f3f6fa; --abu-teks:#475569;
+  }
+  body{ font-family:'Work Sans',sans-serif; color:#1f2d3d; }
+  h1,h2,h3,.disp{ font-family:'Fraunces',serif; }
+  .nav-item.active{ background:linear-gradient(135deg,var(--biru),var(--ungu)); color:#fff; }
+  .nav-item.active svg{ stroke:#fff; }
+  .page{ animation:fade .35s ease; }
+  @keyframes fade{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+  .pop{ animation:pop .3s ease; }
+  @keyframes pop{ 0%{transform:scale(.9);opacity:0;} 100%{transform:scale(1);opacity:1;} }
+  .evi{ cursor:pointer; padding:1px 3px; border-radius:5px; transition:.15s; }
+  .evi:hover{ background:#fff3cd; }
+  .evi.mark{ background:#fde047; box-shadow:0 0 0 2px #e0a800 inset; }
+  .drag-card{ cursor:grab; touch-action:none; }
+  .drag-card.dragging{ opacity:.5; }
+  .drop-zone.over{ outline:3px dashed var(--biru); background:var(--biru-muda); }
+  .app-h{ min-height:calc(100 * min(var(--vh,1vh),1vh)); }
+  .scroll-area{ max-height:calc(100 * min(var(--vh,1vh),1vh)); overflow-y:auto; }
+  ::-webkit-scrollbar{ width:10px; } ::-webkit-scrollbar-thumb{ background:#c3d4e8; border-radius:8px; }
+  /* ===== Splash Screen ===== */
+  #splash{ position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center;
+    transition:opacity .55s ease, visibility .55s ease; overflow:hidden; }
+  #splash.hide{ opacity:0; visibility:hidden; pointer-events:none; }
+  .blob{ position:absolute; border-radius:50%; filter:blur(4px); opacity:.55; animation:float 7s ease-in-out infinite; }
+  @keyframes float{ 0%,100%{ transform:translateY(0) scale(1);} 50%{ transform:translateY(-26px) scale(1.08);} }
+  .splash-in{ animation:splashUp .7s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes splashUp{ from{opacity:0; transform:translateY(24px) scale(.96);} to{opacity:1; transform:translateY(0) scale(1);} }
+  .emoji-bounce{ display:inline-block; animation:bounce 2.2s ease-in-out infinite; }
+  @keyframes bounce{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-10px);} }
+</style>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js" type="text/javascript"></script>
+ </head>
+ <body data-template-id="__page-root" class="app-h w-full"><!-- ===== SPLASH SCREEN ===== -->
+  <section id="splash" data-template-id="splash-bg" class="canva-section">
+   <div class="blob" style="width:220px;height:220px;background:#facc15;top:-40px;left:-30px;"></div>
+   <div class="blob" style="width:180px;height:180px;background:#ec4899;bottom:-30px;right:10%;animation-delay:1.2s;"></div>
+   <div class="blob" style="width:160px;height:160px;background:#38bdf8;top:20%;right:-40px;animation-delay:.6s;"></div>
+   <div class="blob" style="width:140px;height:140px;background:#a3e635;bottom:15%;left:8%;animation-delay:2s;"></div>
+   <div class="splash-in relative z-10 text-center px-6 max-w-2xl">
+    <img data-template-id="logo-splash" class="canva-image w-20 h-20 mx-auto mb-4 drop-shadow-lg" loading="lazy">
+    <div class="text-7xl lg:text-8xl mb-4">
+     <span class="emoji-bounce">🔍</span> <span class="emoji-bounce" style="animation-delay:.3s">📰</span>
+    </div>
+    <h1 data-template-id="splash-title" class="canva-text font-bold leading-tight drop-shadow">LITERASI INFORMASI</h1>
+    <p data-template-id="splash-sub" class="canva-text mt-3 text-lg">Fakta atau Hoaks? Media Pembelajaran Interaktif Bahasa Indonesia Kelas VII</p>
+    <p data-template-id="splash-slogan" class="canva-text mt-5 inline-block rounded-full px-6 py-3 font-semibold shadow-lg">Saring sebelum sharing, periksa sebelum percaya.</p>
+    <div class="mt-8"><button id="splash-enter" data-template-id="splash-enter-btn" class="canva-button px-9 py-4 rounded-2xl font-bold text-lg shadow-xl hover:scale-105 transition-transform">MULAI BELAJAR</button>
+    </div>
+    <div class="flex flex-wrap justify-center gap-3 mt-8 text-4xl opacity-90">
+     ✅ 📢 ⚠️ 📄 🔎 🛡️
+    </div>
+   </div>
+  </section>
+  <section id="welcome-page" data-template-id="welcome-page-bg" class="w-full app-h hidden flex flex-col items-center justify-center p-6 z-80" style="background:linear-gradient(135deg, #eef4ff 0%, #fdf2f8 50%, #f3e8ff 100%)">
+   <div class="splash-in relative max-w-md w-full space-y-6">
+    <div class="text-center space-y-2">
+     <img data-template-id="logo-welcome" class="canva-image w-16 h-16 mx-auto mb-2 drop-shadow-lg" loading="lazy">
+     <div class="text-7xl mb-4">
+      👋
+     </div>
+     <h1 class="text-4xl font-bold text-[var(--biru-tua)] disp">Selamat Datang!</h1>
+     <p class="text-lg text-slate-600">Isi data dirimu sebelum memulai misi detektif.</p>
+    </div>
+    <form id="welcome-form" class="space-y-4 bg-white rounded-2xl shadow-lg p-6">
+     <div><label class="block text-sm font-semibold text-slate-700 mb-2" for="welcome-nama" data-template-id="welcome-nama-label">Nama Murid</label> <input id="welcome-nama" type="text" placeholder="mis. Aldi Wijaya" class="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-[var(--biru)]" required>
+     </div>
+     <div><label class="block text-sm font-semibold text-slate-700 mb-2" for="welcome-kelas" data-template-id="welcome-kelas-label">Kelas</label> <select id="welcome-kelas" class="w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-[var(--biru)]" required> <option value="">— Pilih kelas —</option> <option value="VII-A">VII A</option> <option value="VII-B">VII B</option> <option value="VII-C">VII C</option> <option value="VII-D">VII D</option> <option value="VII-E">VII E</option> </select>
+     </div><button type="submit" class="w-full py-4 rounded-xl text-white font-bold text-lg mt-6" style="background:linear-gradient(135deg,var(--biru),var(--ungu))">🚀 Mulai Belajar →</button>
+    </form>
+    <p class="text-center text-xs text-slate-500">💡 Isi data ini agar guru dapat memantau progres kelompokmu</p>
+   </div>
+  </section>
+  <div class="w-full flex flex-col lg:flex-row app-h" style="display:none"><!-- ===== Sidebar navigasi ===== -->
+   <aside class="canva-sidebar bg-white lg:w-72 w-full border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col shrink-0 lg:h-auto">
+    <div class="p-4 lg:p-5 border-b border-slate-100 flex items-center gap-3">
+     <img data-template-id="logo-sidebar" class="canva-image w-12 h-12 rounded-lg shrink-0 drop-shadow-sm" loading="lazy">
+     <div>
+      <p data-template-id="brand-title" class="canva-text leading-tight font-bold text-[var(--biru-tua)]">LITERASI INFORMASI</p>
+      <p data-template-id="brand-tag" class="canva-text text-slate-500 leading-tight">Fakta atau Hoaks?</p>
+     </div>
+    </div>
+    <nav id="nav" class="p-2 lg:p-3 flex lg:flex-col gap-1 overflow-x-auto"></nav>
+   </aside><!-- ===== Konten utama ===== -->
+   <main class="flex-1 flex flex-col min-w-0">
+    <header class="canva-header flex items-center justify-between gap-2 px-4 lg:px-6 py-3 bg-white border-b border-slate-200 sticky top-0 z-20">
+     <h4 id="crumb" class="disp font-semibold text-[var(--biru-tua)] text-lg truncate">Beranda</h4>
+     <div class="flex items-center gap-2"><button id="btn-bgm" title="Musik latar" class="w-10 h-10 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+       <svg width="20" height="20" fill="none" stroke="#334" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 18V5l10-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="16" cy="16" r="3" />
+       </svg></button> <button id="btn-sfx" title="Efek suara" class="w-10 h-10 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+       <svg width="20" height="20" fill="none" stroke="#334" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M15.5 8.5a5 5 0 0 1 0 7" />
+       </svg></button> <button id="btn-full" title="Layar penuh" class="w-10 h-10 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+       <svg width="20" height="20" fill="none" stroke="#334" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3" />
+       </svg></button> <button id="btn-home" data-nav="beranda" title="Kembali ke Beranda" class="canva-button px-3 h-10 rounded-lg text-white font-semibold flex items-center gap-2 text-sm" style="background:linear-gradient(135deg,var(--biru),var(--ungu))">
+       <svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+       </svg><span class="hidden sm:inline">Beranda</span></button>
+     </div>
+    </header>
+    <div class="scroll-area flex-1">
+     <div id="pages" class="p-4 lg:p-8 max-w-6xl mx-auto w-full"></div>
+    </div>
+   </main>
+  </div>
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden"></div><!-- Teks editable statis -->
+<script>
+/* =========================================================
+   LITERASI INFORMASI — SPA Media Pembelajaran Inkuiri
+   ========================================================= */
+function ed(id, fallback){
+  const el = document.querySelector('[data-template-id="'+id+'"]');
+  const t = el && el.textContent.trim();
+  return t ? t : fallback;
+}
+
+/* ---------- STATE + localStorage ---------- */
+const KEY='literasi_informasi_v3';
+const defaultState={
+  visited:{}, misiDone:false, buktiFound:0,
+  latihan:{l1:null,l2:null,l3:null,l4:null,l5:false},
+  refleksiDone:false, badges:{}, response:null, dugaan:null, posterJudul:'',
+  namaMurid:'', kelasMurid:''
+};
+let state=loadState();
+function loadState(){ try{ return Object.assign({},defaultState,JSON.parse(localStorage.getItem(KEY)||'{}')); }catch(e){ return {...defaultState}; } }
+function saveState(){ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} }
+
+/* ---------- GOOGLE SHEETS ---------- */
+const GOOGLE_SHEETS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbx1d2Pz7V_oF_ep8de7P7KduJSnC7otU7S5cWykn1a7TJR34x8odSJRS2aiKC1esraK/exec';
+let savedRows=[];
+function renderSavedResults(){
+  const list=document.getElementById('uji-saved-list'); if(!list) return;
+  if(!savedRows.length){ list.innerHTML='<p class="text-sm text-slate-400">Belum ada hasil yang dikirim dari sesi ini.</p>'; return; }
+  list.innerHTML='';
+  savedRows.slice().reverse().forEach(r=>{
+    const el=document.createElement('div');
+    el.className='flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 bg-slate-50';
+    el.innerHTML='<div class="min-w-0"><p class="font-bold text-slate-800 truncate">'+esc(String(r.nama_murid||'-'))+' · '+esc(String(r.nama_kelompok||'-'))+'</p><p class="text-xs text-slate-500">'+esc(String(r.kelas||'-'))+' · '+esc(new Date(r.waktu_simpan).toLocaleString('id-ID'))+'</p></div><span class="px-3 py-1 rounded-full text-white font-bold text-sm" style="background:linear-gradient(135deg,#2563eb,#7c3aed)">'+(Number(r.skor_total)||0)+' pt</span>';
+    list.appendChild(el);
+  });
+}
+
+/* ---------- AUDIO ---------- */
+let actx=null, bgmOn=false, sfxOn=true, bgmNodes=null;
+function getCtx(){ if(!actx){ try{ actx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return actx; }
+function sfx(type){
+  if(!sfxOn) return; const c=getCtx(); if(!c) return; if(c.state==='suspended') c.resume();
+  const seq = type==='benar'?[[660,0],[880,.09]] : type==='salah'?[[300,0],[220,.12]] : type==='selesai'?[[523,0],[659,.1],[784,.2],[1046,.32]] : [[520,0]];
+  seq.forEach(([f,t])=>{ const o=c.createOscillator(),g=c.createGain(); o.type='sine'; o.frequency.value=f; o.connect(g); g.connect(c.destination); const st=c.currentTime+t; g.gain.setValueAtTime(.0001,st); g.gain.exponentialRampToValueAtTime(.18,st+.02); g.gain.exponentialRampToValueAtTime(.0001,st+.18); o.start(st); o.stop(st+.2); });
+}
+function startBGM(){ const c=getCtx(); if(!c) return; if(c.state==='suspended') c.resume(); stopBGM();
+  const notes=[392,440,523,440]; let i=0; const g=c.createGain(); g.gain.value=.05; g.connect(c.destination);
+  const iv=setInterval(()=>{ const o=c.createOscillator(),ng=c.createGain(); o.type='triangle'; o.frequency.value=notes[i%notes.length]; o.connect(ng); ng.connect(g); const t=c.currentTime; ng.gain.setValueAtTime(.0001,t); ng.gain.exponentialRampToValueAtTime(1,t+.1); ng.gain.exponentialRampToValueAtTime(.0001,t+.9); o.start(t); o.stop(t+1); i++; },1000);
+  bgmNodes={iv,g};
+}
+function stopBGM(){ if(bgmNodes){ clearInterval(bgmNodes.iv); try{bgmNodes.g.disconnect();}catch(e){} bgmNodes=null; } }
+
+function toggleFull(){ if(!document.fullscreenElement){ document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen(); } else { document.exitFullscreen&&document.exitFullscreen(); } }
+
+function toast(msg,kind='ok'){ const t=document.getElementById('toast'); const col=kind==='ok'?'var(--hijau)':kind==='warn'?'var(--oranye)':kind==='err'?'var(--merah)':'var(--biru)';
+  t.innerHTML='<div class="pop px-5 py-3 rounded-xl text-white font-semibold shadow-lg" style="background:'+col+'">'+msg+'</div>'; t.classList.remove('hidden'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.add('hidden'),2800); }
+const BADGES={ pemula:'🕵️ Detektif Informasi Pemula', bukti:'🔎 Pengumpul Bukti Hebat', fakta:'✅ Pemeriksa Fakta Andal', hoaks:'🛡️ Pemburu Hoaks Cerdas' };
+function grant(id){ if(state.badges[id]) return; state.badges[id]=true; saveState(); sfx('selesai'); toast('Badge baru: '+BADGES[id],'ok'); }
+
+/* ---------- Menu ---------- */
+const MENU=[
+  {id:'beranda',label:'Beranda',icon:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'},
+  {id:'misi',label:'Misi Detektif',icon:'<circle cx="10" cy="10" r="6"/><line x1="21" y1="21" x2="14.5" y2="14.5"/>'},
+  {id:'pusat',label:'Pusat Pengetahuan',icon:'<path d="M4 4h16v16H4z"/><path d="M8 4v16"/>'},
+  {id:'investigasi',label:'Ruang Investigasi',icon:'<path d="M5 3h9l5 5v13H5z"/><circle cx="11" cy="13" r="2.5"/><line x1="13" y1="15" x2="15" y2="17"/>'},
+  {id:'uji',label:'Uji Kemampuan',icon:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12l1.5 1.5L14 10M9 16h4"/>'},
+  {id:'refleksi',label:'Catatan Reflektif',icon:'<path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>'},
+  {id:'dev',label:'Informasi Pengembang',icon:'<circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r=".6" fill="currentColor"/>'}
+];
+function buildNav(){ const n=document.getElementById('nav'); n.innerHTML='';
+  MENU.forEach(m=>{ const b=document.createElement('button'); b.className='nav-item flex items-center gap-3 px-3 py-3 rounded-xl text-left w-full font-semibold text-slate-600 hover:bg-slate-100 whitespace-nowrap'; b.dataset.nav=m.id;
+    b.innerHTML='<svg width="22" height="22" fill="none" stroke="#4a5568" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+m.icon+'</svg><span class="text-sm lg:text-base">'+m.label+'</span>';
+    b.onclick=()=>{ sfx('klik'); go(m.id); }; n.appendChild(b); });
+}
+
+/* ---------- Router ---------- */
+let current='beranda';
+function go(id){ current=id; state.visited[id]=true; saveState();
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.nav===id));
+  document.getElementById('crumb').textContent=(MENU.find(m=>m.id===id)||{}).label||'Beranda';
+  render(id); document.querySelector('.scroll-area').scrollTop=0; }
+
+/* ---------- DATA BERITA ---------- */
+const beritaA=[
+  {t:'Antara Lampung',cat:'sumber',txt:'Menurut kantor berita Antara Lampung, '},
+  {t:'Rabu, 5 Maret 2026,',cat:'waktu',txt:'pada Rabu, 5 Maret 2026, '},
+  {t:'Desa Pugung Raharjo, Lampung Timur',cat:'tempat',txt:'sekelompok arkeolog melakukan penelitian di situs Desa Pugung Raharjo, Lampung Timur. '},
+  {t:'Dr. Sari Wibowo',cat:'tokoh',txt:'Ketua tim, Dr. Sari Wibowo, menyatakan bahwa mereka menemukan sejumlah benda purbakala berupa keramik dan perkakas kuno. '},
+  {t:'terdaftar di museum daerah',cat:'data',txt:'Temuan tersebut telah didokumentasikan dan terdaftar di museum daerah untuk penelitian lebih lanjut. '},
+  {t:null,cat:'',txt:'Penelitian dilakukan untuk mempelajari kehidupan masyarakat masa lampau.'}
+];
+const beritaB=[
+  {t:'HARTA KARUN MILIARAN RUPIAH DITEMUKAN!!!',cat:'provokatif',txt:'HARTA KARUN MILIARAN RUPIAH DITEMUKAN!!! '},
+  {t:null,cat:'',txt:'Konon, di sebuah hutan di Lampung ditemukan peti berisi emas yang bisa membuat siapa pun kaya mendadak. '},
+  {t:'tanpa nama dan sumber jelas',cat:'sumber',txt:'Kabar ini beredar dari pesan berantai tanpa nama dan sumber jelas. '},
+  {t:'membuat orang menjadi kaya seketika',cat:'klaim',txt:'Katanya, siapa pun yang menyentuh emas itu langsung menjadi kaya seketika. '},
+  {t:'SEBARKAN SEKARANG sebelum dihapus!',cat:'ajakan',txt:'SEBARKAN SEKARANG kepada semua teman sebelum pesan ini dihapus! '},
+  {t:null,cat:'',txt:'Tidak disebutkan kapan, di mana, atau siapa yang menemukannya.'}
+];
+let markedEvidence={};
+
+/* ---------- RENDER ---------- */
+function render(id){ const p=document.getElementById('pages');
+  if(id==='beranda') p.innerHTML=viewBeranda();
+  else if(id==='misi') p.innerHTML=viewMisi();
+  else if(id==='pusat') p.innerHTML=viewPusat();
+  else if(id==='investigasi') p.innerHTML=viewInvestigasi();
+  else if(id==='uji') p.innerHTML=viewUji();
+  else if(id==='refleksi') p.innerHTML=viewRefleksi();
+  else if(id==='dev') p.innerHTML=viewDev();
+  wireEvents(id);
+}
+
+/* ---------- BERANDA ---------- */
+function viewBeranda(){
+  const flow=['Amati','Tanya','Selidiki','Buktikan','Simpulkan','Bagikan Panduan'];
+  const flowColors=['#2563eb','#7c3aed','#ec4899','#f97316','#059669','#eab308'];
+  return `<div class="page space-y-6">
+    <div class="rounded-3xl overflow-hidden text-white p-7 lg:p-10 relative" style="background:linear-gradient(135deg,#2563eb 0%,#7c3aed 55%,#ec4899 100%)">
+      <div class="text-5xl mb-2">🔍📰</div>
+      <h1 class="text-3xl lg:text-5xl font-bold mb-2">${ed('home-title','LITERASI INFORMASI')}</h1>
+      <p class="text-lg opacity-95 max-w-2xl">${ed('home-sub','Fakta atau Hoaks? Media Pembelajaran Interaktif Bahasa Indonesia Kelas VII SMP')}</p>
+      <p class="mt-4 inline-block bg-white/20 backdrop-blur rounded-full px-4 py-2 font-semibold">"${ed('home-slogan','Saring sebelum sharing, periksa sebelum percaya.')}"</p>
+      <div class="flex flex-wrap gap-3 mt-6 text-4xl">✅📢⚠️📄🔎</div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-5">
+      <div class="md:col-span-2 border rounded-2xl p-6" style="background:linear-gradient(135deg,#d1fae5,#ecfccb);border-color:#a7f3d0">
+        <h3 class="text-xl font-bold text-[var(--hijau)] mb-2">🎯 ${ed('home-goal-label','Tujuan Pembelajaran')}</h3>
+        <p class="text-slate-700 leading-relaxed">${ed('home-goal-text','Melalui kegiatan analisis kritis terhadap teks berita, latihan interaktif, dan diskusi kelompok, murid mampu membedakan berita fakta dan berita palsu/hoaks disertai alasan yang logis berdasarkan bukti dalam teks secara akurat.')}</p>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col justify-center">
+        <button data-nav="misi" class="w-full py-5 rounded-2xl text-white text-xl font-bold shadow-lg hover:brightness-105" style="background:linear-gradient(135deg,#f97316,#ec4899)">🕵️ ${ed('home-start-btn','Mulai Misi Detektif')}</button>
+      </div>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-2xl p-6">
+      <h3 class="text-lg font-bold text-[var(--biru-tua)] mb-4">🧭 ${ed('home-flow-label','Alur Belajar')}</h3>
+      <div class="flex flex-wrap items-center gap-2">
+        ${flow.map((f,i)=>`<span class="px-4 py-2 rounded-full text-white font-semibold shadow-sm" style="background:${flowColors[i]}">${i+1}. ${f}</span>${i<flow.length-1?'<span class="text-slate-400 font-bold">→</span>':''}`).join('')}
+      </div>
+    </div>
+
+    ${progressCard()}
+  </div>`;
+}
+function progressCard(){
+  const latDone=Object.values(state.latihan).filter(v=>v).length;
+  const badgeList=Object.keys(state.badges).filter(k=>state.badges[k]);
+  return `<div class="bg-white border-2 rounded-2xl p-6" style="border-color:var(--ungu)">
+    <h3 class="text-lg font-bold text-[var(--biru-tua)] mb-4">📊 ${ed('home-progress-label','Kartu Progress Belajar Murid')}</h3>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+      ${pStat('Misi Inkuiri', state.misiDone?'Selesai':'Belum', state.misiDone)}
+      ${pStat('Bukti Ditemukan', state.buktiFound+' bukti', state.buktiFound>0)}
+      ${pStat('Latihan Selesai', latDone+' / 5', latDone>0)}
+      ${pStat('Skor Latihan', latihanScore()+' poin', latihanScore()>0)}
+      ${pStat('Refleksi', state.refleksiDone?'Selesai':'Belum', state.refleksiDone)}
+      ${pStat('Badge', badgeList.length+' badge', badgeList.length>0)}
+    </div>
+    <div class="flex flex-wrap gap-2 mt-4">
+      ${badgeList.length? badgeList.map(b=>`<span class="px-3 py-1 rounded-full bg-[var(--hijau-muda)] text-[var(--hijau)] font-semibold text-sm">${BADGES[b]}</span>`).join('') : '<span class="text-slate-400 text-sm">Belum ada badge. Selesaikan misi & latihan untuk memperolehnya.</span>'}
+    </div>
+    <button id="reset-btn" class="mt-4 text-sm text-[var(--merah)] font-semibold hover:underline">↺ Ulangi Misi (atur ulang progress)</button>
+  </div>`;
+}
+function pStat(l,v,ok){ return `<div class="rounded-xl p-4 ${ok?'bg-[var(--hijau-muda)]':'bg-slate-100'}"><p class="text-xs text-slate-500 font-semibold uppercase tracking-wide">${l}</p><p class="text-lg font-bold ${ok?'text-[var(--hijau)]':'text-slate-500'}">${v}</p></div>`; }
+function latihanScore(){ let s=0; if(state.latihan.l1)s+=20; if(state.latihan.l2)s+=20; if(state.latihan.l3)s+=20; if(state.latihan.l4)s+=20; if(state.latihan.l5)s+=20; return s; }
+
+/* ---------- WELCOME MODAL ---------- */
+function showWelcome(){
+  document.getElementById('splash').classList.add('hide');
+  document.getElementById('welcome-page').classList.remove('hidden');
+}
+function hideWelcome(){
+  document.getElementById('welcome-page').classList.add('hidden');
+}
+function wireWelcome(){
+  const form=document.getElementById('welcome-form'); if(!form) return;
+  form.onsubmit=function(e){ e.preventDefault(); sfx('klik');
+    const nama=(document.getElementById('welcome-nama').value||'').trim();
+    const kelas=(document.getElementById('welcome-kelas').value||'').trim();
+    if(!nama||!kelas){ toast('Isi nama dan kelas terlebih dahulu','warn'); sfx('salah'); return; }
+    state.namaMurid=nama; state.kelasMurid=kelas; saveState();
+    hideWelcome();
+    document.getElementById('welcome-page').style.display='none';
+    document.querySelector('.w-full.flex.flex-col.lg\\:flex-row.app-h').style.display='flex';
+    go('beranda'); sfx('selesai'); toast(`Selamat datang, ${nama}! 👋`,'ok');
+  };
+}
+
+/* ---------- MISI ---------- */
+function viewMisi(){
+  return `<div class="page space-y-6">
+    <div class="border-l-4 rounded-xl p-4" style="background:var(--oranye-muda);border-color:var(--oranye)"><p class="font-semibold text-[var(--oranye)]">Tahap Inkuiri: Orientasi → Merumuskan Masalah → Dugaan Awal</p></div>
+
+    <section class="bg-white border border-slate-200 rounded-2xl p-6">
+      <h3 class="text-xl font-bold text-[var(--biru-tua)] mb-3">Tahap 1 · Orientasi Masalah</h3>
+      <div class="border-2 border-dashed border-[var(--merah)] rounded-2xl p-5 bg-red-50 max-w-xl">
+        <div class="flex items-center gap-2 text-[var(--merah)] font-bold mb-2">⚠️ Pesan Berantai Diterima</div>
+        <p class="text-slate-800 leading-relaxed font-medium">"PENTING! Libur sekolah diperpanjang selama satu bulan. Informasi ini rahasia. Sebarkan kepada semua teman agar tidak terlambat!"</p>
+      </div>
+      <p class="mt-5 font-semibold text-slate-700">Pertanyaan Pemantik:</p>
+      <ol class="list-decimal ml-6 mt-2 space-y-1 text-slate-700">
+        <li>Dari mana kalian biasanya memperoleh informasi atau berita?</li>
+        <li>Apakah semua informasi yang diterima dapat langsung dipercaya?</li>
+        <li>Apa akibatnya jika seseorang menyebarkan informasi yang belum terbukti benar?</li>
+        <li>Bagaimana cara mengetahui bahwa suatu berita fakta atau hoaks?</li>
+      </ol>
+      <p class="mt-5 font-semibold text-slate-700">Respons cepat kelompok:</p>
+      <div class="grid sm:grid-cols-2 gap-3 mt-2">
+        ${['Saya percaya','Saya ragu','Saya perlu memeriksa','Saya tidak akan langsung menyebarkan'].map(r=>`<button class="resp-btn py-3 rounded-xl border-2 border-slate-200 font-semibold hover:border-[var(--biru)] hover:bg-[var(--biru-muda)] ${state.response===r?'border-[var(--biru)] bg-[var(--biru-muda)]':''}" data-r="${r}">${r}</button>`).join('')}
+      </div>
+      <div id="resp-msg" class="mt-3 ${state.response?'':'hidden'}"><div class="bg-[var(--hijau-muda)] text-[var(--hijau)] rounded-xl p-3 font-semibold">🕵️ Detektif informasi tidak terburu-buru percaya. Mari cari bukti.</div></div>
+    </section>
+
+    <section class="bg-white border border-slate-200 rounded-2xl p-6">
+      <h3 class="text-xl font-bold text-[var(--biru-tua)] mb-3">Tahap 2 · Merumuskan Masalah</h3>
+      <div class="bg-[var(--biru-muda)] rounded-xl p-4 font-semibold text-[var(--biru-tua)]">❓ Apakah pesan tentang libur sekolah tersebut merupakan berita fakta atau berita palsu/hoaks?</div>
+      <p class="mt-4 font-semibold text-slate-700">Pilih pertanyaan investigasi (masuk ke Papan Investigasi Kelompok):</p>
+      <div class="grid sm:grid-cols-2 gap-3 mt-2">
+        ${['Siapa sumber informasi ini?','Apakah ada pengumuman resmi?','Kapan informasi ini diterbitkan?','Apakah ada bukti yang mendukung isi pesan?','Apakah informasi ini dapat ditemukan di sumber lain?'].map((q,i)=>`<button class="quest-btn py-4 px-4 rounded-xl border-2 border-slate-200 font-semibold text-left hover:border-[var(--biru)]" data-q="${i}">➕ ${q}</button>`).join('')}
+      </div>
+      <div class="mt-4">
+        <p class="font-semibold text-slate-700 mb-2">📋 Papan Investigasi Kelompok:</p>
+        <div id="board-quest" class="min-h-[60px] rounded-xl border-2 border-dashed border-slate-300 p-3 flex flex-wrap gap-2 bg-slate-50"><span class="text-slate-400 text-sm">Pilih pertanyaan di atas...</span></div>
+      </div>
+    </section>
+
+    <section class="bg-white border border-slate-200 rounded-2xl p-6">
+      <h3 class="text-xl font-bold text-[var(--biru-tua)] mb-3">Tahap 3 · Dugaan Awal</h3>
+      <div class="grid grid-cols-2 gap-4">
+        <button class="dug-btn py-6 rounded-2xl border-4 font-bold text-lg ${state.dugaan==='Fakta'?'border-[var(--hijau)] bg-[var(--hijau-muda)] text-[var(--hijau)]':'border-slate-200'}" data-d="Fakta">✅ Dugaan: Fakta</button>
+        <button class="dug-btn py-6 rounded-2xl border-4 font-bold text-lg ${state.dugaan==='Hoaks'?'border-[var(--merah)] bg-red-50 text-[var(--merah)]':'border-slate-200'}" data-d="Hoaks">⚠️ Dugaan: Hoaks</button>
+      </div>
+      <div id="alasan-wrap" class="mt-4 ${state.dugaan?'':'hidden'}">
+        <p class="font-semibold text-slate-700 mb-2">Pilih alasan awal:</p>
+        <div class="grid sm:grid-cols-2 gap-2">
+          ${['Ada sumber resmi','Tidak ada sumber yang jelas','Bahasa pesan membuat panik','Ada waktu dan tempat kejadian','Ada ajakan untuk segera menyebarkan','Saya belum memiliki cukup bukti'].map(a=>`<button class="al-btn py-3 px-3 rounded-xl border-2 border-slate-200 text-sm font-medium hover:border-[var(--biru)] text-left" data-a="${a}">${a}</button>`).join('')}
+        </div>
+        <div id="dug-msg" class="mt-3 hidden"><div class="bg-[var(--oranye-muda)] text-[var(--oranye)] rounded-xl p-3 font-semibold">Dugaan awal belum tentu benar. Selanjutnya, kumpulkan bukti di Ruang Investigasi.</div></div>
+      </div>
+      <button data-nav="investigasi" class="mt-6 w-full py-4 rounded-2xl text-white font-bold text-lg" style="background:linear-gradient(135deg,var(--biru),var(--ungu))">Lanjut ke Ruang Investigasi →</button>
+    </section>
+  </div>`;
+}
+
+/* ---------- PUSAT PENGETAHUAN ---------- */
+function viewPusat(){
+  const adik=[['Apa?','Kerja bakti membersihkan halaman sekolah'],['Di mana?','Di sekolah / halaman sekolah'],['Kapan?','Jumat pagi'],['Siapa?','Murid kelas VII dan wali kelas'],['Mengapa?','Untuk menciptakan lingkungan yang bersih'],['Bagaimana?','Dilakukan bersama dipimpin wali kelas']];
+  return `<div class="page space-y-5">
+    <div class="border-l-4 rounded-xl p-4" style="background:var(--hijau-muda);border-color:var(--hijau)"><p class="font-semibold text-[var(--hijau)]">🎯 Tujuan: membedakan berita fakta & hoaks dengan alasan logis berdasarkan bukti.</p></div>
+
+    <div class="grid md:grid-cols-2 gap-5">
+      <div class="bg-white border border-slate-200 rounded-2xl p-5">
+        <h3 class="text-lg font-bold text-[var(--biru-tua)]">📖 Kartu 1 · Apa Itu Berita?</h3>
+        <p class="mt-2 text-slate-700">Berita adalah informasi mengenai peristiwa yang benar-benar terjadi, penting, aktual, dan dapat diperiksa.</p>
+        <p class="mt-2 text-slate-600 italic bg-slate-50 rounded-lg p-3">"Pada Senin pagi, murid kelas VII mengikuti kegiatan literasi selama 15 menit sebelum pembelajaran dimulai."</p>
+        <button id="bukti-btn" class="mt-3 px-4 py-2 rounded-lg text-white font-semibold text-sm" style="background:linear-gradient(135deg,var(--biru),var(--ungu))">Bukti Apa yang Bisa Dicari?</button>
+        <ul id="bukti-list" class="mt-3 hidden list-disc ml-5 text-slate-700 space-y-1"><li>Waktu kejadian</li><li>Tempat kejadian</li><li>Pihak yang terlibat</li><li>Sumber informasi</li><li>Bukti pendukung</li></ul>
+      </div>
+      <div class="bg-white border border-slate-200 rounded-2xl p-5">
+        <h3 class="text-lg font-bold text-[var(--biru-tua)]">🔀 Kartu 2 · Fakta, Opini & Hoaks</h3>
+        <p class="text-sm mt-2 text-slate-700"><b class="text-[var(--hijau)]">Fakta</b>: dapat dibuktikan · <b class="text-[var(--biru)]">Opini</b>: pendapat seseorang · <b class="text-[var(--merah)]">Hoaks</b>: informasi palsu/menyesatkan.</p>
+        <p class="mt-3 text-sm font-semibold text-slate-600">Cocokkan pernyataan:</p>
+        <div class="space-y-2 mt-2" id="fop">
+          ${[['Perpustakaan sekolah buka Senin sampai Jumat.','Fakta'],['Perpustakaan sekolah tempat paling nyaman di dunia.','Opini'],['Semua buku di perpustakaan bisa langsung membuat pintar.','Hoaks']].map((x,i)=>`<div class="rounded-lg border border-slate-200 p-2"><p class="text-sm text-slate-700 mb-1">${x[0]}</p><div class="flex gap-1">${['Fakta','Opini','Hoaks'].map(o=>`<button class="fop-btn flex-1 py-1 rounded text-xs font-semibold border border-slate-200" data-i="${i}" data-c="${o}" data-a="${x[1]}">${o}</button>`).join('')}</div></div>`).join('')}
+        </div>
+      </div>
+      <div class="border rounded-2xl p-5" style="background:var(--hijau-muda);border-color:#a7f3d0">
+        <h3 class="text-lg font-bold text-[var(--hijau)]">✅ Kartu 3 · Ciri Berita Fakta</h3>
+        <ul class="mt-2 space-y-1 text-slate-700 text-sm">
+          <li>• Memiliki sumber yang jelas</li><li>• Memuat waktu dan tempat kejadian</li><li>• Menyebutkan tokoh/pihak terkait</li><li>• Dapat dibuktikan melalui sumber resmi</li><li>• Memiliki data/keterangan yang masuk akal</li><li>• Menggunakan bahasa yang wajar</li>
+        </ul>
+      </div>
+      <div class="border rounded-2xl p-5" style="background:#ffe4e6;border-color:#fecdd3">
+        <h3 class="text-lg font-bold text-[var(--merah)]">⚠️ Kartu 4 · Ciri Berita Hoaks</h3>
+        <ul class="mt-2 space-y-1 text-slate-700 text-sm">
+          <li>• Sumber tidak jelas</li><li>• Judul provokatif</li><li>• Huruf kapital/tanda seru berlebihan</li><li>• Mengajak segera menyebarkan</li><li>• Tidak ada bukti, waktu, atau tempat</li><li>• Klaim berlebihan/tidak masuk akal</li><li>• Isi tidak sesuai judul</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-2xl p-5">
+      <h3 class="text-lg font-bold text-[var(--biru-tua)]">🔎 Kartu 5 · ADIKSIMBA sebagai Alat Investigasi</h3>
+      <p class="text-sm text-slate-600 mt-1">ADIKSIMBA memeriksa kelengkapan informasi dalam teks. Klik setiap unsur untuk melihat jawabannya pada teks berikut:</p>
+      <p class="mt-3 bg-slate-50 rounded-lg p-3 text-slate-700 text-sm">"Pada Jumat pagi, murid kelas VII mengikuti kerja bakti membersihkan halaman sekolah. Kegiatan dipimpin wali kelas dan dilakukan untuk menciptakan lingkungan yang bersih."</p>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
+        ${adik.map((a,i)=>`<button class="adik-btn rounded-xl border-2 border-[var(--biru)] p-3 text-left" data-i="${i}"><p class="font-bold text-[var(--biru)]">${a[0]}</p><p class="answer hidden text-sm text-slate-600 mt-1">${a[1]}</p></button>`).join('')}
+      </div>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-2xl p-5">
+      <h3 class="text-lg font-bold text-[var(--biru-tua)]">🧪 Kartu 6 · Teknik Verifikasi Sederhana</h3>
+      <ol class="list-decimal ml-6 mt-2 space-y-1 text-slate-700 text-sm">
+        <li>Baca informasi secara utuh.</li><li>Periksa sumber informasi.</li><li>Periksa URL atau alamat situs.</li><li>Periksa waktu, tempat, tokoh, dan data.</li><li>Bandingkan dengan sumber resmi/media tepercaya.</li><li>Periksa apakah gambar/judul sesuai isi.</li><li>Jangan langsung menyebarkan informasi.</li>
+      </ol>
+      <div class="mt-3 rounded-lg p-3 text-sm text-[var(--oranye)] font-medium" style="background:var(--oranye-muda)">💡 Perhatikan alamat situs. Nama situs yang mirip tetapi berbeda dapat menipu, misalnya perbedaan .com asli dan .co yang menyerupai.</div>
+    </div>
+  </div>`;
+}
+
+/* ---------- RUANG INVESTIGASI ---------- */
+function viewInvestigasi(){
+  const renderTeks=(arr)=>arr.map((s)=>s.t? `<span class="evi" data-cat="${s.cat}" data-label="${s.t}">${s.txt}</span>` : s.txt).join('');
+  const cats=['sumber','waktu','tempat','tokoh','data','provokatif','klaim','ajakan','periksa'];
+  const catName={sumber:'Sumber',waktu:'Waktu',tempat:'Tempat',tokoh:'Tokoh',data:'Data',provokatif:'Bahasa provokatif',klaim:'Klaim berlebihan',ajakan:'Ajakan menyebarkan',periksa:'Perlu diperiksa'};
+  return `<div class="page space-y-5">
+    <div class="border-l-4 rounded-xl p-4" style="background:var(--biru-muda);border-color:var(--biru)"><p class="font-semibold text-[var(--biru-tua)]">🔎 Mode Kaca Pembesar aktif — klik bagian teks yang menurutmu adalah bukti. Bukti masuk ke Papan Bukti.</p></div>
+
+    <div class="grid lg:grid-cols-2 gap-5">
+      <div class="bg-white border-2 border-[var(--hijau)] rounded-2xl p-5">
+        <div class="flex items-center gap-2 font-bold text-[var(--hijau)] mb-2">📄 Teks A</div>
+        <p class="text-slate-700 leading-relaxed">${renderTeks(beritaA)}</p>
+      </div>
+      <div class="bg-white border-2 border-[var(--merah)] rounded-2xl p-5">
+        <div class="flex items-center gap-2 font-bold text-[var(--merah)] mb-2">📄 Teks B</div>
+        <p class="text-slate-700 leading-relaxed">${renderTeks(beritaB)}</p>
+      </div>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-2xl p-5">
+      <h3 class="text-lg font-bold text-[var(--biru-tua)] mb-3">📌 Papan Bukti</h3>
+      <div class="grid sm:grid-cols-3 gap-3" id="evi-board">
+        ${cats.map(c=>`<div class="rounded-xl border border-slate-200 p-3 bg-slate-50"><p class="text-xs font-bold uppercase text-slate-500 mb-1">${catName[c]}</p><div class="evi-cat space-y-1" data-cat="${c}"><span class="text-slate-300 text-xs">—</span></div></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="border rounded-2xl p-5" style="background:var(--oranye-muda);border-color:#fed7aa">
+      <h3 class="font-bold text-[var(--oranye)] mb-2">💬 Petunjuk Detektif (umpan balik bertahap)</h3>
+      <div class="flex flex-wrap gap-2">
+        ${['Periksa kembali apakah sumbernya jelas.','Apakah teks memuat waktu dan tempat kejadian?','Adakah kata yang mengajak segera menyebarkan?','Apakah klaim dalam teks dapat dibuktikan?'].map((h,i)=>`<button class="hint-btn px-3 py-2 rounded-lg bg-white border border-orange-200 text-sm font-medium text-[var(--oranye)]" data-h="${i}">Petunjuk ${i+1}</button>`).join('')}
+      </div>
+      <p id="hint-out" class="mt-3 text-slate-700 font-medium hidden"></p>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 overflow-x-auto">
+      <h3 class="text-lg font-bold text-[var(--biru-tua)] mb-3">📊 Tabel Perbandingan</h3>
+      <table class="w-full text-sm border-collapse min-w-[560px]">
+        <thead><tr class="bg-[var(--biru-muda)] text-[var(--biru-tua)]">
+          <th class="p-2 border border-slate-200 text-left">Aspek</th><th class="p-2 border border-slate-200 text-left">Bukti Teks A</th><th class="p-2 border border-slate-200 text-left">Bukti Teks B</th></tr></thead>
+        <tbody>
+          ${[['Sumber','Antara Lampung (jelas)','Tanpa nama & sumber jelas'],['Waktu','Rabu, 5 Maret 2026','Tidak disebutkan'],['Tempat','Desa Pugung Raharjo','Tidak jelas'],['Tokoh','Dr. Sari Wibowo','Tidak ada'],['Bahasa','Netral','Provokatif & ajakan menyebar']].map(r=>`<tr><td class="p-2 border border-slate-200 font-semibold">${r[0]}</td><td class="p-2 border border-slate-200 text-[var(--hijau)]">${r[1]}</td><td class="p-2 border border-slate-200 text-[var(--merah)]">${r[2]}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-2xl p-5">
+      <h3 class="text-lg font-bold text-[var(--biru-tua)] mb-3">👥 Kesimpulan Kelompok</h3>
+      <div class="space-y-3">
+        ${[['inv1','Teks yang kami nilai sebagai FAKTA adalah ...'],['inv2','Teks yang kami nilai sebagai HOAKS adalah ...'],['inv3','Bukti terkuat yang kami temukan adalah ...'],['inv4','Informasi yang masih perlu diperiksa adalah ...']].map(f=>`<div><label class="block text-sm font-semibold text-slate-600 mb-1" for="${f[0]}">${f[1]}</label><input id="${f[0]}" type="text" class="inv-field w-full rounded-lg border border-slate-300 p-3" placeholder="Tulis jawaban kelompok..."></div>`).join('')}
+      </div>
+      <button id="inv-save" class="mt-4 px-5 py-3 rounded-xl bg-[var(--hijau)] text-white font-bold">Simpan Kesimpulan & Selesaikan Misi</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- UJI KEMAMPUAN ---------- */
+function viewUji(){
+  return `<div class="page space-y-6">
+    <section class="bg-white border border-slate-200 rounded-2xl p-5">
+      <h3 class="text-lg font-bold text-[var(--biru-tua)] mb-1">🧩 Latihan 1 · Sortir Bukti</h3>
+      <p class="text-sm text-slate-500 mb-3">Seret kartu ke kotak yang tepat. Bisa juga diklik lalu pilih kotak (mode sentuh).</p>
+      <div id="l1-cards" class="flex flex-wrap gap-2 mb-4 min-h-[48px]"></div>
+      <div class="grid md:grid-cols-3 gap-3">
+        ${[['fakta','Bukti Berita Fakta','var(--hijau)'],['hoaks','Tanda Berita Hoaks','var(--merah)'],['periksa','Perlu Diverifikasi','var(--oranye)']].map(z=>`<div class="drop-zone rounded-xl border-2 border-dashed p-3 min-h-[110px]" style="border-color:${z[2]}" data-zone="${z[0]}"><p class="font-bold text-sm mb-2" style="color:${z[2]}">${z[1]}</p><div class="zone-body space-y-1"></div></div>`).join('')}
+      </div>
+      <button id="l1-check" class="mt-3 px-5 py-3 rounded-xl text-white font-bold" style="background:linear-gradient(135deg,var(--biru),var(--ungu))">Periksa Jawaban</button>
+      <p id="l1-fb" class="mt-2 font-semibold"></p>
+    </section>
+
+    <section class="bg-white border border-slate-200 rounded-2xl p-5">
+      <h3 class="text-lg font-bold text-[var(--biru-tua)] mb-3">🔗 Latihan 2 · Mencocokkan Ciri</h3>
+      <div id="l2" class="space-y-2">
+        ${[['Memiliki sumber resmi','Fakta'],['Meminta segera disebarkan','Hoaks'],['Memuat data yang dapat diperiksa','Fakta'],['Tidak mencantumkan waktu kejadian','Perlu diverifikasi'],['Menggunakan bahasa emosional','Hoaks'],['Memiliki unsur ADIKSIMBA lengkap','Fakta']].map((x,i)=>`<div class="flex flex-col sm:flex-row sm:items-center gap-2 border border-slate-200 rounded-lg p-2"><span class="flex-1 text-sm text-slate-700">${x[0]}</span><div class="flex gap-1">${['Fakta','Hoaks','Perlu diverifikasi'].map(o=>`<button class="l2-btn px-3 py-1 rounded text-xs font-semibold border border-slate-200" data-i="${i}" data-c="${o}" data-a="${x[1]}">${o}</button>`).join('')}</div></div>`).join('')}
+      </div>
+      <p id="l2-fb" class="mt-2 font-semibold"></p>
+    </section>
+
+    <section class="bg-white border border-slate-200 rounded-2xl p-5">
+      <h3 class="text-lg font-bold text-[var(--biru-tua)] mb-2">🕵️ Latihan 3 · Detektif Teks</h3>
+      <p class="text-sm text-slate-500 mb-2">Klik kata bukti pada teks, lalu tentukan Fakta/Hoaks.</p>
+      <p class="bg-slate-50 rounded-lg p-3 text-slate-700 leading-relaxed">
+        <span class="evi" data-cat="sumber">Menurut pengumuman resmi sekolah, </span>
+        <span class="evi" data-cat="waktu">pada Senin, 9 Maret 2026, </span>
+        <span class="evi" data-cat="tempat">di aula sekolah </span>
+        akan diadakan lomba literasi yang diumumkan oleh
+        <span class="evi" data-cat="tokoh">kepala sekolah.</span>
+      </p>
+      <div class="flex gap-3 mt-3">
+        <button class="l3-jd px-5 py-3 rounded-xl border-2 border-[var(--hijau)] font-bold text-[var(--hijau)]" data-j="Fakta">✅ Fakta</button>
+        <button class="l3-jd px-5 py-3 rounded-xl border-2 border-[var(--merah)] font-bold text-[var(--merah)]" data-j="Hoaks">⚠️ Hoaks</button>
+      </div>
+      <p id="l3-fb" class="mt-2 font-semibold"></p>
+    </section>
+
+    <section class="bg-white border border-slate-200 rounded-2xl p-5">
+      <h3 class="text-lg font-bold text-[var(--biru-tua)] mb-2">🧭 Latihan 4 · Pilih Langkah Verifikasi</h3>
+      <p class="rounded-lg p-3 text-slate-700" style="background:var(--oranye-muda)">"Kamu menerima pesan bahwa sekolah akan diliburkan besok. Pesan berasal dari grup yang tidak jelas sumbernya."</p>
+      <div class="grid gap-2 mt-3">
+        ${['Langsung meneruskan pesan.','Memeriksa kepada guru atau pengumuman resmi sekolah.','Membagikan pesan ke media sosial.','Percaya karena banyak orang membagikannya.'].map((o,i)=>`<button class="l4-btn text-left py-3 px-4 rounded-xl border-2 border-slate-200 font-medium hover:border-[var(--biru)]" data-i="${i}">${o}</button>`).join('')}
+      </div>
+      <p id="l4-fb" class="mt-2 font-semibold"></p>
+    </section>
+
+    <section class="bg-white border-2 border-[var(--biru)] rounded-2xl p-5">
+      <h3 class="text-lg font-bold text-[var(--biru-tua)] mb-1">🏆 Latihan 5 · Misi Akhir — Panduan Anti-Hoaks untuk Teman</h3>
+      <p class="text-sm text-slate-500 mb-3">Susun panduan digital kelompokmu, lalu tampilkan sebagai poster di PID.</p>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="space-y-3">
+          <div><label class="block text-sm font-semibold mb-1" for="p-judul">Judul Panduan</label><input id="p-judul" class="w-full rounded-lg border border-slate-300 p-2" placeholder="mis. Detektif Cilik Anti-Hoaks"></div>
+          <div><label class="block text-sm font-semibold mb-1" for="p-langkah">Tiga langkah cepat memeriksa berita</label><textarea id="p-langkah" rows="3" class="w-full rounded-lg border border-slate-300 p-2" placeholder="1. ...&#10;2. ...&#10;3. ..."></textarea></div>
+          <div><label class="block text-sm font-semibold mb-1" for="p-ciri">Tiga ciri berita hoaks</label><textarea id="p-ciri" rows="3" class="w-full rounded-lg border border-slate-300 p-2" placeholder="1. ...&#10;2. ...&#10;3. ..."></textarea></div>
+          <div><label class="block text-sm font-semibold mb-1" for="p-contoh">Contoh pesan yang perlu diperiksa</label><input id="p-contoh" class="w-full rounded-lg border border-slate-300 p-2" placeholder="mis. pesan libur sekolah tanpa sumber"></div>
+          <div><label class="block text-sm font-semibold mb-1" for="p-ajak">Ajakan tidak menyebar tanpa verifikasi</label><input id="p-ajak" class="w-full rounded-lg border border-slate-300 p-2" placeholder="mis. Saring sebelum sharing!"></div>
+          <button id="p-buat" class="w-full py-3 rounded-xl text-white font-bold" style="background:linear-gradient(135deg,var(--biru),var(--ungu))">Buat Poster Digital</button>
+        </div>
+        <div id="poster" class="rounded-2xl border-2 border-dashed border-slate-300 p-5 bg-slate-50 flex items-center justify-center text-slate-400 text-center">Poster akan muncul di sini setelah dibuat.</div>
+      </div>
+    </section>
+
+    <!-- ===== KIRIM HASIL KE GOOGLE SHEETS ===== -->
+    <section class="rounded-2xl p-6 text-white" style="background:linear-gradient(135deg,#059669,#2563eb)">
+      <h3 data-template-id="uji-simpan-label" class="canva-text text-xl font-bold mb-1">Kirim Hasil Belajar ke Guru</h3>
+      <p data-template-id="uji-simpan-desc" class="canva-text opacity-95 mb-4">Pastikan nama dan kelas sudah benar. Hasil akan direkap otomatis di Google Sheets.</p>
+      <div class="bg-white rounded-2xl p-5 text-slate-800">
+        <div id="uji-skor-ringkasan" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4"></div>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="flex-1">
+            <label class="block text-sm font-semibold text-slate-600 mb-1" for="uji-nama">Nama kelompok</label>
+            <input id="uji-nama" type="text" class="w-full rounded-lg border border-slate-300 p-3" placeholder="mis. Kelompok Detektif 1">
+          </div>
+          <button id="uji-simpan" class="sm:self-end px-6 py-3 rounded-xl text-white font-bold shadow-md disabled:opacity-60" style="background:linear-gradient(135deg,#059669,#2563eb)">
+            <span id="uji-simpan-txt">Simpan Hasil ke Sheet</span>
+          </button>
+        </div>
+        <div class="mt-6">
+          <p class="text-sm font-bold text-slate-600 uppercase tracking-wide mb-2">Hasil yang dikirim dari perangkat ini</p>
+          <div id="uji-saved-list" class="space-y-2"></div>
+        </div>
+      </div>
+    </section>
+  </div>`;
+}
+
+/* ---------- REFLEKSI ---------- */
+function viewRefleksi(){
+  return `<div class="page space-y-5">
+    <div class="border-l-4 rounded-xl p-4" style="background:var(--hijau-muda);border-color:var(--hijau)"><p class="font-semibold text-[var(--hijau)]">✍️ Refleksi berbasis proses inkuiri</p></div>
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
+      ${[['r1','Bukti apa yang paling membantu saya membedakan fakta dan hoaks?'],['r2','Bagian mana dari teks yang harus saya periksa terlebih dahulu?'],['r3','Apakah dugaan awal saya berubah setelah menemukan bukti?'],['r4','Apa yang akan saya lakukan jika menerima informasi meragukan?'],['r5','Sikap apa yang perlu saya tunjukkan sebelum menyebarkan berita?']].map(f=>`<div><label class="block text-sm font-semibold text-slate-700 mb-1" for="${f[0]}">${f[1]}</label><textarea id="${f[0]}" rows="2" class="ref-field w-full rounded-lg border border-slate-300 p-2" placeholder="Tulis jawabanmu..."></textarea></div>`).join('')}
+      <div>
+        <p class="text-sm font-semibold text-slate-700 mb-2">Seberapa siap kamu menjadi detektif informasi?</p>
+        <div class="grid sm:grid-cols-2 gap-2">
+          ${['Sangat siap menjadi detektif informasi','Siap, tetapi masih perlu latihan','Masih perlu bimbingan','Perlu berdiskusi kembali bersama kelompok'].map(o=>`<button class="ref-siap py-3 px-3 rounded-xl border-2 border-slate-200 text-sm font-medium text-left hover:border-[var(--biru)]" data-o="${o}">${o}</button>`).join('')}
+        </div>
+      </div>
+      <div><label class="block text-sm font-semibold text-slate-700 mb-1" for="r-pesan">Pesan penting yang akan saya lakukan setelah belajar hari ini adalah ...</label><input id="r-pesan" class="w-full rounded-lg border border-slate-300 p-3" placeholder="Tulis komitmenmu..."></div>
+      <button id="ref-save" class="w-full py-3 rounded-xl bg-[var(--hijau)] text-white font-bold">Simpan Refleksi</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- INFO PENGEMBANG ---------- */
+function viewDev(){
+  const rows=[
+    ['Nama Pengembang', ed('dev-pengembang','Evita Hersa Adellia Meisya Putri, S.Pd., Gr.')],
+    ['Jabatan', ed('dev-jabatan','Guru Bahasa Indonesia')],
+    ['Satuan Pendidikan', ed('dev-satuan','Sekolah Rakyat Menengah Pertama Terintegrasi 35 Bandar Lampung')],
+    ['Mata Pelajaran', ed('dev-mapel','Bahasa Indonesia')],
+    ['Kelas / Fase', ed('dev-kelas','VII SMP / Fase D')],
+    ['Materi', ed('dev-materi','Membedakan Berita Fakta dan Berita Palsu/Hoaks')],
+    ['Judul Media', ed('dev-judul-media','Jejak Kebenaran: Fakta atau Hoaks?')],
+    ['Model Pembelajaran', ed('dev-model','Inquiry-Based Learning dan Case Study')],
+    ['Strategi Pembelajaran', ed('dev-strategi','Analisis Kritis, Diskusi Kelompok, Kolaborasi, dan Game Based Learning')],
+    ['Media Utama', ed('dev-media','Papan Interaktif Digital (PID) dan Laptop')],
+    ['Tahun Pengembangan', ed('dev-tahun','2026')]
+  ];
+  return `<div class="page space-y-6">
+    <div class="bg-white border border-slate-200 rounded-2xl p-8 shadow-md">
+      <div class="flex flex-col md:flex-row items-center md:items-start gap-8 mb-8 pb-8 border-b border-slate-100">
+        <div class="flex-shrink-0">
+          <img data-template-id="dev-photo" class="canva-image w-40 h-48 rounded-2xl drop-shadow-lg object-cover" loading="lazy">
+        </div>
+        <div class="flex-1">
+          <h3 class="text-3xl font-bold text-[var(--biru-tua)] mb-2">${ed('dev-pengembang','Evita Hersa Adellia Meisya Putri, S.Pd., Gr.')}</h3>
+          <p class="text-lg font-semibold text-[var(--biru)] mb-4">${ed('dev-jabatan','Guru Bahasa Indonesia')}</p>
+          <div class="prose prose-sm text-slate-700 space-y-2 text-sm leading-relaxed">
+            <p><span class="font-bold">Satuan Pendidikan:</span> ${ed('dev-satuan','Sekolah Rakyat Menengah Pertama Terintegrasi 35 Bandar Lampung')}</p>
+            <p><span class="font-bold">Mata Pelajaran:</span> ${ed('dev-mapel','Bahasa Indonesia')}</p>
+            <p><span class="font-bold">Kelas / Fase:</span> ${ed('dev-kelas','VII SMP / Fase D')}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <h4 class="text-lg font-bold text-[var(--biru-tua)] mb-4">📚 Detail Media Pembelajaran</h4>
+        ${rows.slice(4).map((r)=>`<div class="py-3 border-b border-slate-100 last:border-b-0"><p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">${r[0]}</p><p class="text-slate-800 font-medium">${r[1]}</p></div>`).join('')}
+      </div>
+
+      <div class="mt-8 pt-6 border-t-2 border-slate-100 rounded-xl p-5" style="background:linear-gradient(135deg,var(--biru-muda),#f0e7ff)">
+        <p class="text-sm text-[var(--biru-tua)] leading-relaxed"><span class="font-bold">🎯 Deskripsi:</span> Media pembelajaran ini dikembangkan untuk membantu siswa kelas VII SMP membedakan berita fakta dan berita palsu/hoaks melalui pendekatan inkuiri berbasis studi kasus yang interaktif dan kolaboratif.</p>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   EVENT HANDLERS
+   ============================================================ */
+function wireEvents(id){
+  document.querySelectorAll('[data-nav]').forEach(b=>{ if(b.closest('#nav')) return; b.onclick=()=>{ sfx('klik'); go(b.dataset.nav); }; });
+  if(id==='beranda'){ const rb=document.getElementById('reset-btn'); if(rb) rb.onclick=()=>{ state=JSON.parse(JSON.stringify(defaultState)); saveState(); toast('Progress diatur ulang','warn'); go('beranda'); }; }
+  if(id==='misi') wireMisi();
+  if(id==='pusat') wirePusat();
+  if(id==='investigasi') wireInvestigasi();
+  if(id==='uji') wireUji();
+  if(id==='refleksi') wireRefleksi();
+}
+
+function wireMisi(){
+  document.querySelectorAll('.resp-btn').forEach(b=>b.onclick=()=>{ sfx('klik'); state.response=b.dataset.r; saveState();
+    document.querySelectorAll('.resp-btn').forEach(x=>x.classList.remove('border-[var(--biru)]','bg-[var(--biru-muda)]'));
+    b.classList.add('border-[var(--biru)]','bg-[var(--biru-muda)]'); document.getElementById('resp-msg').classList.remove('hidden'); grant('pemula'); });
+  const board=document.getElementById('board-quest'); const picked=[];
+  document.querySelectorAll('.quest-btn').forEach(b=>b.onclick=()=>{ if(picked.includes(b.dataset.q)) return; sfx('klik'); picked.push(b.dataset.q);
+    if(board.querySelector('span.text-slate-400')) board.innerHTML=''; const chip=document.createElement('span'); chip.className='pop px-3 py-1 rounded-full bg-[var(--biru)] text-white text-sm font-medium'; chip.textContent=b.textContent.replace('➕ ',''); board.appendChild(chip); b.classList.add('opacity-50'); });
+  document.querySelectorAll('.dug-btn').forEach(b=>b.onclick=()=>{ sfx('klik'); state.dugaan=b.dataset.d; saveState();
+    document.querySelectorAll('.dug-btn').forEach(x=>{ x.classList.remove('border-[var(--hijau)]','bg-[var(--hijau-muda)]','text-[var(--hijau)]','border-[var(--merah)]','bg-red-50','text-[var(--merah)]'); x.classList.add('border-slate-200'); });
+    b.classList.remove('border-slate-200'); if(b.dataset.d==='Fakta') b.classList.add('border-[var(--hijau)]','bg-[var(--hijau-muda)]','text-[var(--hijau)]'); else b.classList.add('border-[var(--merah)]','bg-red-50','text-[var(--merah)]');
+    document.getElementById('alasan-wrap').classList.remove('hidden'); });
+  document.querySelectorAll('.al-btn').forEach(b=>b.onclick=()=>{ sfx('klik'); document.querySelectorAll('.al-btn').forEach(x=>x.classList.remove('border-[var(--biru)]','bg-[var(--biru-muda)]')); b.classList.add('border-[var(--biru)]','bg-[var(--biru-muda)]'); document.getElementById('dug-msg').classList.remove('hidden'); });
+}
+
+function wirePusat(){
+  const bb=document.getElementById('bukti-btn'); if(bb) bb.onclick=()=>{ sfx('klik'); document.getElementById('bukti-list').classList.toggle('hidden'); };
+  document.querySelectorAll('.fop-btn').forEach(b=>b.onclick=()=>{ const ok=b.dataset.c===b.dataset.a; sfx(ok?'benar':'salah');
+    document.querySelectorAll('.fop-btn[data-i="'+b.dataset.i+'"]').forEach(x=>x.classList.remove('bg-[var(--hijau)]','bg-[var(--merah)]','text-white'));
+    b.classList.add(ok?'bg-[var(--hijau)]':'bg-[var(--merah)]','text-white'); });
+  document.querySelectorAll('.adik-btn').forEach(b=>b.onclick=()=>{ sfx('klik'); b.querySelector('.answer').classList.toggle('hidden'); });
+}
+
+function wireInvestigasi(){
+  markedEvidence={};
+  document.querySelectorAll('#pages .evi').forEach(sp=>{ sp.onclick=()=>{ if(sp.classList.contains('mark')) return; sp.classList.add('mark'); sfx('klik');
+    const cat=sp.dataset.cat; if(!cat) return; const box=document.querySelector('.evi-cat[data-cat="'+cat+'"]'); if(box){ if(box.querySelector('.text-slate-300')) box.innerHTML=''; const tag=document.createElement('span'); tag.className='pop block px-2 py-1 rounded bg-white text-xs text-slate-700 border border-slate-200'; tag.textContent=(sp.dataset.label||sp.textContent).trim(); box.appendChild(tag); }
+    state.buktiFound++; saveState(); if(state.buktiFound>=4) grant('bukti'); };
+  });
+  const hints=['Periksa kembali apakah sumbernya jelas. Teks A menyebut kantor berita; Teks B tidak.','Ya! Teks A memuat Rabu, 5 Maret 2026 dan Desa Pugung Raharjo. Teks B tidak memuat keduanya.','Perhatikan Teks B: "SEBARKAN SEKARANG…" adalah ajakan menyebar — ciri hoaks.','Klaim "langsung menjadi kaya seketika" tidak dapat dibuktikan — ini klaim berlebihan.'];
+  document.querySelectorAll('.hint-btn').forEach(b=>b.onclick=()=>{ sfx('klik'); const out=document.getElementById('hint-out'); out.textContent='💡 '+hints[+b.dataset.h]; out.classList.remove('hidden'); });
+  const save=document.getElementById('inv-save'); if(save) save.onclick=()=>{ let filled=0; document.querySelectorAll('.inv-field').forEach(f=>{ if(f.value.trim()) filled++; }); if(filled<2){ toast('Isi minimal 2 kesimpulan kelompok','warn'); sfx('salah'); return; } state.misiDone=true; saveState(); sfx('selesai'); grant('fakta'); toast('Misi investigasi selesai! 🎉','ok'); };
+}
+
+/* --- Uji Kemampuan --- */
+const L1DATA=[['Sumber resmi','fakta'],['Waktu kejadian','fakta'],['Nama narasumber','fakta'],['Bahasa netral','fakta'],['Judul provokatif','hoaks'],['Ajakan sebarkan sekarang','hoaks'],['Klaim berlebihan','hoaks'],['Data tanpa sumber','periksa'],['Lokasi tidak jelas','periksa'],['Foto tanpa keterangan','periksa']];
+let l1touch=null;
+function wireUji(){
+  const holder=document.getElementById('l1-cards'); holder.innerHTML='';
+  L1DATA.forEach((c)=>{ const el=document.createElement('div'); el.className='drag-card pop px-3 py-2 rounded-lg bg-[var(--biru-muda)] text-[var(--biru-tua)] font-semibold text-sm border border-blue-200'; el.textContent=c[0]; el.dataset.ans=c[1]; el.draggable=true;
+    el.addEventListener('dragstart',e=>{ el.classList.add('dragging'); e.dataTransfer.setData('text',''); window._drag=el; });
+    el.addEventListener('dragend',()=>el.classList.remove('dragging'));
+    el.addEventListener('click',()=>{ if(l1touch===el){ el.classList.remove('ring-4','ring-[var(--biru)]'); l1touch=null; } else { document.querySelectorAll('.drag-card').forEach(x=>x.classList.remove('ring-4','ring-[var(--biru)]')); el.classList.add('ring-4','ring-[var(--biru)]'); l1touch=el; sfx('klik'); } });
+    holder.appendChild(el);
+  });
+  document.querySelectorAll('.drop-zone').forEach(z=>{
+    z.addEventListener('dragover',e=>{ e.preventDefault(); z.classList.add('over'); });
+    z.addEventListener('dragleave',()=>z.classList.remove('over'));
+    z.addEventListener('drop',e=>{ e.preventDefault(); z.classList.remove('over'); if(window._drag){ z.querySelector('.zone-body').appendChild(window._drag); window._drag.classList.remove('ring-4','ring-[var(--biru)]'); sfx('klik'); } });
+    z.addEventListener('click',()=>{ if(l1touch){ z.querySelector('.zone-body').appendChild(l1touch); l1touch.classList.remove('ring-4','ring-[var(--biru)]'); l1touch=null; sfx('klik'); } });
+  });
+  document.getElementById('l1-check').onclick=()=>{ let correct=0,total=0; document.querySelectorAll('.drop-zone').forEach(z=>{ z.querySelectorAll('.drag-card').forEach(c=>{ total++; if(c.dataset.ans===z.dataset.zone){ correct++; c.classList.add('bg-[var(--hijau-muda)]'); } else { c.classList.add('bg-red-50'); } }); });
+    const fb=document.getElementById('l1-fb'); if(total<10){ fb.textContent='Letakkan semua kartu terlebih dahulu.'; fb.style.color='var(--oranye)'; sfx('salah'); return; }
+    if(correct===10){ fb.textContent='✅ Hebat! Semua bukti tersortir dengan benar.'; fb.style.color='var(--hijau)'; sfx('benar'); state.latihan.l1=true; saveState(); grant('hoaks'); }
+    else { fb.textContent='🔎 Benar '+correct+'/10. Periksa kembali kartu yang berwarna merah — ingat ciri fakta, hoaks, & yang perlu diverifikasi.'; fb.style.color='var(--oranye)'; sfx('salah'); } refreshUjiRingkasan(); };
+
+  const l2fb=document.getElementById('l2-fb'); const l2done=new Set();
+  document.querySelectorAll('.l2-btn').forEach(b=>b.onclick=()=>{ const ok=b.dataset.c===b.dataset.a; sfx(ok?'benar':'salah');
+    document.querySelectorAll('.l2-btn[data-i="'+b.dataset.i+'"]').forEach(x=>x.classList.remove('bg-[var(--hijau)]','bg-[var(--merah)]','text-white'));
+    b.classList.add(ok?'bg-[var(--hijau)]':'bg-[var(--merah)]','text-white'); if(ok) l2done.add(b.dataset.i);
+    if(l2done.size===6){ l2fb.textContent='✅ Semua ciri cocok dengan kategorinya!'; l2fb.style.color='var(--hijau)'; state.latihan.l2=true; saveState(); refreshUjiRingkasan(); } });
+
+  document.querySelectorAll('#pages .l3-jd').forEach(b=>b.onclick=()=>{ const fb=document.getElementById('l3-fb'); if(b.dataset.j==='Fakta'){ fb.textContent='✅ Tepat! Teks memuat sumber resmi, waktu, tempat, dan tokoh yang jelas — ciri berita fakta.'; fb.style.color='var(--hijau)'; sfx('benar'); state.latihan.l3=true; saveState(); refreshUjiRingkasan(); } else { fb.textContent='🔎 Coba lagi. Periksa: apakah ada sumber, waktu, tempat, dan tokoh yang jelas dalam teks?'; fb.style.color='var(--oranye)'; sfx('salah'); } });
+
+  document.querySelectorAll('.l4-btn').forEach(b=>b.onclick=()=>{ const fb=document.getElementById('l4-fb'); if(b.dataset.i==='1'){ fb.textContent='✅ Benar! Memeriksa kepada guru atau pengumuman resmi adalah langkah verifikasi yang tepat.'; fb.style.color='var(--hijau)'; sfx('benar'); b.classList.add('border-[var(--hijau)]','bg-[var(--hijau-muda)]'); state.latihan.l4=true; saveState(); refreshUjiRingkasan(); } else { fb.textContent='🔎 Belum tepat. Sebelum meneruskan/percaya, periksa dulu kebenarannya dari sumber resmi.'; fb.style.color='var(--oranye)'; sfx('salah'); } });
+
+  document.getElementById('p-buat').onclick=()=>{ const j=(document.getElementById('p-judul').value||'Panduan Anti-Hoaks').trim(); const lng=(document.getElementById('p-langkah').value||'').trim(); const cr=(document.getElementById('p-ciri').value||'').trim(); const ct=(document.getElementById('p-contoh').value||'').trim(); const aj=(document.getElementById('p-ajak').value||'Saring sebelum sharing!').trim();
+    if(!lng||!cr){ toast('Isi langkah & ciri hoaks terlebih dahulu','warn'); sfx('salah'); return; }
+    document.getElementById('poster').className='pop rounded-2xl border-2 border-[var(--biru)] p-5 text-white';
+    document.getElementById('poster').style.background='linear-gradient(135deg,#7c3aed,#ec4899)';
+    document.getElementById('poster').innerHTML='<div class="text-center"><div class="text-3xl">🛡️📰</div><h4 class="text-xl font-bold mt-2">'+esc(j)+'</h4></div><div class="mt-3 text-sm space-y-2"><div class="bg-white/20 rounded-lg p-2"><b>Langkah cepat:</b><br>'+esc(lng).replace(/\n/g,'<br>')+'</div><div class="bg-white/20 rounded-lg p-2"><b>Ciri hoaks:</b><br>'+esc(cr).replace(/\n/g,'<br>')+'</div>'+(ct?'<div class="bg-white/20 rounded-lg p-2"><b>Contoh perlu diperiksa:</b> '+esc(ct)+'</div>':'')+'</div><p class="mt-3 text-center font-bold bg-[var(--oranye)] rounded-full py-2">'+esc(aj)+'</p>';
+    sfx('selesai'); state.latihan.l5=true; state.posterJudul=j; saveState(); toast('Poster Panduan Anti-Hoaks berhasil dibuat! 🎉','ok'); grant('fakta'); refreshUjiRingkasan(); };
+
+  // ringkasan & simpan ke sheet
+  const namaInput=document.getElementById('uji-nama'); if(namaInput && state.namaKelompok) namaInput.value=state.namaKelompok;
+  refreshUjiRingkasan();
+  renderSavedResults();
+  const btnSimpan=document.getElementById('uji-simpan'); if(btnSimpan) btnSimpan.onclick=simpanHasilUji;
+}
+
+function refreshUjiRingkasan(){
+  const box=document.getElementById('uji-skor-ringkasan'); if(!box) return;
+  const items=[
+    ['Latihan 1', state.latihan.l1],['Latihan 2', state.latihan.l2],['Latihan 3', state.latihan.l3],
+    ['Latihan 4', state.latihan.l4],['Poster', state.latihan.l5]
+  ];
+  box.innerHTML = items.map(it=>`<div class="rounded-xl p-3 ${it[1]?'bg-[var(--hijau-muda)]':'bg-slate-100'}"><p class="text-xs font-semibold uppercase tracking-wide text-slate-500">${it[0]}</p><p class="text-base font-bold ${it[1]?'text-[var(--hijau)]':'text-slate-400'}">${it[1]?'✅ Selesai':'Belum'}</p></div>`).join('')
+    + `<div class="rounded-xl p-3 col-span-2 sm:col-span-1" style="background:linear-gradient(135deg,#2563eb,#7c3aed)"><p class="text-xs font-semibold uppercase tracking-wide text-white/80">Skor Total</p><p class="text-base font-bold text-white">${latihanScore()} poin</p></div>`;
+}
+
+async function simpanHasilUji(){
+  const btn=document.getElementById('uji-simpan');
+  const txt=document.getElementById('uji-simpan-txt');
+  const nama=(document.getElementById('uji-nama').value||'').trim();
+  if(!nama){ toast('Isi nama kelompok terlebih dahulu','warn'); sfx('salah'); return; }
+  if(!state.namaMurid || !state.kelasMurid){ toast('Data nama dan kelas murid belum diisi. Kembali ke halaman awal.','warn'); return; }
+  if(!GOOGLE_SHEETS_WEB_APP_URL.startsWith('https://script.google.com/macros/s/')){ toast('Koneksi Google Sheets belum diatur. Periksa konfigurasi media.','err'); return; }
+  state.namaKelompok=nama; saveState();
+  btn.disabled=true; const old=txt.textContent; txt.textContent='Mengirim...';
+  const record={
+    nama_murid:state.namaMurid,
+    kelas:state.kelasMurid,
+    nama_kelompok:nama,
+    latihan1_benar:!!state.latihan.l1,
+    latihan2_benar:!!state.latihan.l2,
+    latihan3_benar:!!state.latihan.l3,
+    latihan4_benar:!!state.latihan.l4,
+    poster_dibuat:!!state.latihan.l5,
+    judul_panduan:state.posterJudul||'',
+    skor_total:latihanScore(),
+    waktu_simpan:new Date().toISOString()
+  };
+  try{
+    await fetch(GOOGLE_SHEETS_WEB_APP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(record)});
+    savedRows.push(record); renderSavedResults(); sfx('selesai');
+    toast('Permintaan pengiriman hasil sudah dikirim. Guru dapat memeriksa rekap di Google Sheets. 🎉','ok');
+  }catch(e){ sfx('salah'); toast('Pengiriman gagal. Periksa koneksi internet lalu coba lagi.','err'); }
+  finally{ btn.disabled=false; txt.textContent=old; }
+}
+
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function wireRefleksi(){
+  document.querySelectorAll('.ref-siap').forEach(b=>b.onclick=()=>{ sfx('klik'); document.querySelectorAll('.ref-siap').forEach(x=>x.classList.remove('border-[var(--biru)]','bg-[var(--biru-muda)]')); b.classList.add('border-[var(--biru)]','bg-[var(--biru-muda)]'); });
+  document.getElementById('ref-save').onclick=()=>{ let filled=0; document.querySelectorAll('.ref-field').forEach(f=>{ if(f.value.trim()) filled++; }); const pesan=document.getElementById('r-pesan').value.trim();
+    if(filled<3||!pesan){ toast('Lengkapi refleksi (min. 3 jawaban + pesan penting)','warn'); sfx('salah'); return; }
+    state.refleksiDone=true; saveState(); sfx('selesai'); toast('Refleksi tersimpan. Terima kasih, Detektif! 🎉','ok'); };
+}
+
+/* ---------- KONTROL GLOBAL ---------- */
+document.getElementById('btn-full').onclick=()=>{ sfx('klik'); toggleFull(); };
+document.getElementById('btn-bgm').onclick=function(){ bgmOn=!bgmOn; if(bgmOn){ startBGM(); this.style.background='var(--hijau-muda)'; toast('Musik latar aktif','info'); } else { stopBGM(); this.style.background=''; toast('Musik latar nonaktif','info'); } };
+document.getElementById('btn-sfx').onclick=function(){ sfxOn=!sfxOn; this.style.background=sfxOn?'':'#f8d7da'; toast('Efek suara '+(sfxOn?'aktif':'nonaktif'),'info'); };
+
+/* ---------- SPLASH ---------- */
+document.getElementById('splash-enter').onclick=function(){ const c=getCtx(); if(c&&c.state==='suspended') c.resume(); sfx('klik'); document.getElementById('splash').classList.add('hide'); setTimeout(()=>{ if(!state.namaMurid || !state.kelasMurid){ showWelcome(); } else { document.getElementById('welcome-page').style.display='none'; document.querySelector('.w-full.flex.flex-col.lg\\:flex-row.app-h').style.display='flex'; go('beranda'); } },300); };
+
+/* ---------- INIT ---------- */
+buildNav();
+wireWelcome();
+go('beranda');
+renderSavedResults();
+</script>
+ </body>
+</html>
